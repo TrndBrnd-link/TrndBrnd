@@ -3,139 +3,454 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VibeStream | Pro Feed</title>
+    <title>VibeStream | Premium Feed & Gift Reveal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans:400,700" rel="stylesheet">
     <style>
-        :root { --primary: #fe2c55; --bg: #000; --card: #161823; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
-        
-        /* DIAGNOSTIC MONITOR - Remove this later when site works */
-        #debugInfo { 
-            position: fixed; top: 10px; left: 10px; z-index: 9999; 
-            background: rgba(0,0,0,0.8); padding: 5px 10px; font-size: 10px; 
-            border: 1px solid var(--primary); pointer-events: none;
+        /* --- 1. CORE FEED STYLES --- */
+        :root { 
+            --primary: #fe2c55; 
+            --whatsapp: #25D366;
+            --bg: #000; 
+            
+            /* Gift Animation Variables */
+            --button-width: 100px;
+            --button-height: 50px;
+            --wrap-width: 32%;
+            --wrap-height: 18%;
+            --wrap-duration: 0.6s;
+            --bow-top: 47%;
+            --bow-left: 40%;
+            --easing: cubic-bezier(0.77, 0, 0.175, 1);
+            --ribbon-delay: 0.2s;
+            --wrap-delay: 0.72s;
+            --ribbon-color-foreground: #fed531;
+            --ribbon-color-background: #db8b22;
+            --card-width: 340px;
+            --card-height: 480px;
+            --color-primary: #fe2c55;
+            --color-gray: #939393;
+            --footer-height: 5rem;
+            --total-button: 150px;
         }
-
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; font-family: 'PT Sans', sans-serif; }
+        
         #feedContainer { 
             height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; 
             scrollbar-width: none; -webkit-overflow-scrolling: touch;
+            position: relative; z-index: 1;
         }
         #feedContainer::-webkit-scrollbar { display: none; }
         
         .card { 
             width: 100%; height: 100vh; scroll-snap-align: start; 
             position: relative; display: flex; align-items: center; justify-content: center;
-            background: #0d0e15;
+            background: #0d0e15; overflow: hidden;
         }
-        .media { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-
-        .html-content {
-            width: 85%; padding: 40px 20px; border-radius: 30px;
-            background: rgba(255,255,255,0.05); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1); text-align: center; z-index: 5;
-        }
-
-        .lock-overlay {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.8);
-            z-index: 10; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center;
-            transition: opacity 0.5s ease; opacity: 0; pointer-events: none;
-        }
-        .lock-overlay.active { opacity: 1; pointer-events: all; }
+        .media { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
         
-        .skip-btn {
-            margin-top: 20px; padding: 12px 25px; border-radius: 50px;
-            background: var(--primary); color: #fff; border: none;
-            font-weight: bold; cursor: pointer; display: none;
+        /* Actions Panel */
+        .actions {
+            position: absolute; bottom: 40px; right: 20px;
+            display: flex; flex-direction: column; gap: 20px; z-index: 10;
         }
+        .action-btn {
+            width: 55px; height: 55px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: white; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s ease;
+        }
+        .action-btn:active { transform: scale(0.9); }
+        .btn-gift { background: linear-gradient(135deg, #ff6b35, #cc199d); }
+        .btn-wa { background: var(--whatsapp); }
+
+        .end-card { flex-direction: column; text-align: center; padding: 20px; background: #161823; }
+        .end-card h2 { margin-bottom: 10px; font-size: 24px; }
+        .end-card p { color: #888; }
+
+        /* --- 2. CONFETTI CANVAS --- */
+        #confetti-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999;
+        }
+
+        /* --- 3. MERGED REVEAL ANIMATION MODAL --- */
+        #giftModalOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 100; display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .giftcard-wrapper {
+            position: relative; z-index: 10; transform: scale(0.85); opacity: 0;
+            transition: all 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        .giftcard-wrapper.revealed { opacity: 1; transform: scale(1); }
+
+        .giftcard {
+            height: var(--card-height); width: var(--card-width);
+            overflow: hidden; border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); background: white;
+            position: relative;
+        }
+
+        .giftcard-content, .giftcard-cover {
+            position: absolute; top: 0; left: 0;
+            height: calc(100% - var(--footer-height)); width: 100%;
+        }
+
+        .giftcard-cover {
+            background: linear-gradient(135deg, #ff6b35, var(--color-primary));
+            display: flex; justify-content: center; align-items: center; z-index: 2;
+        }
+        .giftcard-cover > .fa-gift { color: white; font-size: 5rem; }
+
+        .giftcard-content { padding: 2rem 1.5rem; color: var(--color-gray); z-index: 1; background: white; }
+        .giftcard-content * { transform: translateX(3rem); opacity: 0; }
+        .giftcard-content h2 { font-size: 1.1rem; text-transform: uppercase; margin: 0.5rem 0; color: #232323; }
+        .giftcard-content .item-target-label { font-size: 1rem; font-weight: bold; color: var(--color-primary); margin-top: 10px; display: block;}
+        .giftcard-content .subtext { color: var(--color-gray); font-size: 0.85rem; margin-top: 25px; }
+
+        .giftcard-footer {
+            position: absolute; bottom: 0; left: 0; height: var(--footer-height);
+            width: 100%; background: white; z-index: 3;
+        }
+        .giftcard-footer > * { float: left; }
+        .giftcard-text, .giftcard-info { width: calc(100% - var(--total-button)); padding: 1rem; }
+        .giftcard-text { height: 100%; }
+        .giftcard-text h1 { font-size: 1.3rem; color: var(--color-primary); margin: 0; }
+        .giftcard-text h2 { font-size: 1rem; color: var(--color-gray); margin: 0; }
+
+        .giftcard-info {
+            position: absolute; right: 0; top: 0; height: 100%;
+            text-align: right; transform: translateX(100%); display: table;
+            padding-left: 0; background: white;
+        }
+        .giftcard-info > * { display: table-cell; vertical-align: middle; }
+        .giftcard-info > *:first-child { padding-right: 0.5rem; }
+        .giftcard-info input[type="text"] {
+            height: var(--button-height); width: 100%; padding: 0 0.8rem;
+            background: #f4f4f4; border: 1px solid #dedede; border-radius: 8px;
+            color: #333; font-size: 0.95rem; outline: none;
+        }
+
+        .giftcard-inner-btn {
+            display: inline-block; height: var(--button-height); line-height: 50px;
+            text-align: center; background: #ff9f43; color: white; font-size: 1.1rem;
+            padding: 0 1rem; text-decoration: none; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;
+        }
+        .giftcard-inner-btn.secondary { background: var(--whatsapp); }
+
+        .ribbon { width: calc(var(--button-width) + var(--button-height)); height: calc(var(--button-width) + var(--button-height)); top: calc(50% - (var(--button-width) + var(--button-height)) / 2); position: relative;}
+        .giftwrap { width: 100%; height: 100%; position: relative; }
+        .giftwrap .giftcard-inner-btn {
+            width: var(--button-width); top: calc(50% - var(--button-height) / 2);
+            left: calc(50% - var(--button-width) / 2); position: absolute; z-index: 5;
+        }
+        .giftwrap:before, .giftwrap:after { display: none; content: ''; position: absolute; height: 100%; width: 100%; top: 0; left: 0; }
+        .giftwrap:before {
+            clip-path: polygon(50% 0%, 50% 0%, 50% 0%, 100% 50%, 100% 50%, 100% 50%, 50% 100%, 50% 100%, 50% 100%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 50% 100%, 50% 100%, 100% 50%, 100% 50%, 50% 0%, 50% 0%, 50% 0%);
+            background: #fc1f33; z-index: 2;
+        }
+        .giftwrap:after { clip-path: polygon(50% 0%, 50% 0%, 100% 50%, 100% 50%, 50% 100%, 50% 100%, 0% 50%, 0% 50%); background: #bc0a13; z-index: -1; }
+
+        .bow {
+            display: none; opacity: 0; position: absolute;
+            top: calc(var(--bow-top) - 0.625rem); left: calc(var(--bow-left) - 0.625rem);
+            height: 1.25rem; width: 1.25rem; border-radius: 50%; z-index: 3;
+        }
+        .bow:after { content: ''; display: block; position: absolute; height: 100%; width: 100%; border-radius: 50%; background: #ffe566; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); z-index: 2; }
+        .bow > .fa-bookmark { position: absolute; top: 0.625rem; left: 0.3125rem; font-size: 1rem; color: var(--ribbon-color-foreground); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); z-index: 1; }
+        .bow > .fa-bookmark:first-child { transform: translateX(-0.625rem) scaleY(1.5) rotate(55deg); }
+        .bow > .fa-bookmark:last-child { transform: translateX(0.625rem) scaleY(1.5) rotate(-55deg); }
+
+        .ribbon:before, .ribbon:after { display: none; content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .ribbon:before { clip-path: polygon(35% 32%, 45% 32%, 45% 42%, 82% 42%, 82% 52%, 45% 52%, 45% 68%, 35% 68%, 35% 52%, 18% 52%, 18% 42%, 35% 42%); background: var(--ribbon-color-background); z-index: -1; }
+        .ribbon:after { clip-path: polygon(35% 37.8%, 35% 32%, 45% 32%, 45% 37.8%, 77.4% 42%, 82% 42%, 82% 52%, 77.4% 52%, 45% 62.2%, 45% 68%, 35% 68%, 35% 62.2%, 22.6% 52%, 18% 52%, 18% 42%, 22.6% 42%, 35% 37.8%, 22.6% 42%, 22.6% 52%, 35% 62.2%, 45% 62.2%, 77.4% 52%, 77.4% 42%, 45% 37.8%); background: var(--ribbon-color-foreground); z-index: 2; }
+
+        /* Executed Open Animations */
+        .giftcard-wrapper.revealed .giftwrap > .giftcard-inner-btn { animation: buttonPulse 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.65) forwards; }
+        .giftcard-wrapper.revealed .giftwrap:before, .giftcard-wrapper.revealed .giftwrap:after { display: block; }
+        .giftcard-wrapper.revealed .giftwrap:before { animation: wrap-before-2 0.6s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .giftwrap:after { animation: wrap-after-2 0.6s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .bow { display: block; animation: bowPop 0.3s 0.72s cubic-bezier(0.175, 0.885, 0.32, 1.65) forwards; }
+        .giftcard-wrapper.revealed .ribbon:before, .giftcard-wrapper.revealed .ribbon:after { display: block; }
+        .giftcard-wrapper.revealed .ribbon:before { animation: ribbon-before 0.6s 0.2s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .ribbon:after { animation: ribbon-after 0.6s 0.2s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .giftcard-footer { animation: footerSlide 0.6s 0.72s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .giftcard-cover { animation: coverSlide 0.6s 0.72s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .giftcard-content > * { animation: contentFadeIn 0.6s 0.72s cubic-bezier(0.77, 0, 0.175, 1) both; }
+        .giftcard-wrapper.revealed .giftcard-content > *:nth-child(1) { animation-delay: 0.72s; }
+        .giftcard-wrapper.revealed .giftcard-content > *:nth-child(2) { animation-delay: 0.77s; }
+        .giftcard-wrapper.revealed .giftcard-content > *:nth-child(3) { animation-delay: 0.82s; }
+
+        @keyframes buttonPulse { to { transform: scale(0); opacity: 0; pointer-events: none; } }
+        @keyframes contentFadeIn { to { transform: translateX(0); opacity: 1; } }
+        @keyframes coverSlide { to { transform: translateY(calc(100% - 1px)) scaleX(0.95); } }
+        @keyframes footerSlide { to { transform: translateX(calc(-100% + var(--total-button))); } }
+        @keyframes wrap-before-2 { 
+            50% { clip-path: polygon(50% 0%, 50% 0%, 50% 0%, 100% 50%, 100% 50%, 100% 50%, 50% 100%, 50% 100%, 50% 100%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 50% 100%, 50% 100%, 100% 50%, 100% 50%, 50% 0%, 50% 0%, 50% 0%); }
+            100% { clip-path: polygon(18% 32%, 50% 64%, 82% 32%, 82% 32%, 64% 50%, 82% 68%, 82% 68%, 50% 36%, 18% 68%, 18% 68%, 36% 50%, 18% 32%, 18% 32%, 18% 68%, 82% 68%, 82% 68%, 82% 32%, 82% 32%, 18% 32%, 18% 32%); }
+        }
+        @keyframes wrap-after-2 {
+            0% { clip-path: polygon(50% 40%, 60% 50%, 50% 60%, 40% 50%); }
+            49.999% { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+            50% { clip-path: polygon(50% 0%, 50% 0%, 100% 50%, 100% 50%, 50% 100%, 50% 100%, 0% 50%, 0% 50%); }
+            100% { clip-path: polygon(18% 32%, 82% 32%, 82% 32%, 82% 68%, 82% 68%, 18% 68%, 18% 68%, 18% 32%); }
+        }
+        @keyframes ribbon-before {
+            0% { clip-path: polygon(35% 37%, 45% 37%, 45% 42%, 77% 42%, 77% 52%, 45% 52%, 45% 63%, 35% 63%, 35% 52%, 23% 52%, 23% 42%, 35% 42%); }
+            50% { clip-path: polygon(35% 0%, 45% 0%, 45% 42%, 100% 42%, 100% 52%, 45% 52%, 45% 100%, 35% 100%, 35% 52%, 0% 52%, 0% 42%, 35% 42%); }
+            100% { clip-path: polygon(35% 32%, 45% 32%, 45% 42%, 82% 42%, 82% 52%, 45% 52%, 45% 68%, 35% 68%, 35% 52%, 18% 52%, 18% 42%, 35% 42%); }
+        }
+        @keyframes ribbon-after {
+            0%, 50% { clip-path: polygon(35% 5%, 35% 0%, 45% 0%, 45% 5%, 95% 42%, 100% 42%, 100% 52%, 95% 52%, 45% 95%, 45% 100%, 35% 100%, 35% 95%, 5% 52%, 0% 52%, 0% 42%, 5% 42%, 35% 5%, 5% 42%, 5% 52%, 35% 95%, 45% 95%, 95% 52%, 95% 42%, 45% 5%); }
+            100% { clip-path: polygon(35% 37.8%, 35% 32%, 45% 32%, 45% 37.8%, 77.4% 42%, 82% 42%, 82% 52%, 77.4% 52%, 45% 62.2%, 45% 68%, 35% 68%, 35% 62.2%, 22.6% 52%, 18% 52%, 18% 42%, 22.6% 42%, 35% 37.8%, 22.6% 42%, 22.6% 52%, 35% 62.2%, 45% 62.2%, 77.4% 52%, 77.4% 42%, 45% 37.8%); }
+        }
+        @keyframes bowPop { from { transform: scale(0.8); opacity: 1; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="debugInfo">System: Loading...</div>
+    <canvas id="confetti-canvas"></canvas>
+
     <div id="feedContainer"></div>
 
-    <script>
-        const debug = (msg) => { document.getElementById('debugInfo').innerText = "System: " + msg; };
+    <div id="giftModalOverlay" onclick="closeGiftModal(event)">
+        <div class="giftcard-wrapper" id="giftcardWrapper">
+            <section class="giftcard">
+                <section class="giftcard-cover">
+                    <i class="fa-solid fa-gift"></i>
+                </section>
+                <div class="giftcard-content">
+                    <h2>Claim Your Reward</h2>
+                    <p style="font-size: 14px; margin-bottom: 5px;">Unlock exclusive promos for:</p>
+                    <span class="item-target-label" id="targetImgName">Filename.jpg</span>
+                    <div class="subtext">Enter your coupon or code on the right to verify!</div>
+                </div>
+                <footer class="giftcard-footer">
+                    <div class="giftcard-text">
+                        <h1>Promo Code</h1>
+                        <h2>Verification</h2>
+                    </div>
+                    <div class="ribbon">
+                        <div class="giftwrap">
+                            <button class="giftcard-inner-btn" onclick="executeRibbonReveal(event)">Open</button>
+                        </div>
+                        <div class="bow">
+                            <i class="fa-solid fa-bookmark"></i>
+                            <i class="fa-solid fa-bookmark"></i>
+                        </div>
+                    </div>
+                    <div class="giftcard-info">
+                        <div>
+                            <input type="text" id="promoInput" placeholder="Type promo code..." onclick="event.stopPropagation()">
+                        </div>
+                        <div>
+                            <button class="giftcard-inner-btn secondary" onclick="sendPromoToWhatsApp(event)">Send</button>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+        </div>
+    </div>
 
-        // 1. ASSET LIST
-        const myImages = ['2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg']; 
-        
-        const myBlocks = [
-            { title: "Network Status", desc: "System analyzing data streams..." },
-            { title: "User Analytics", desc: "Compiling latest engagement metrics." }
+    <script>
+        // --- DATA MAPPING ---
+        const myMediaData = [
+            { img: '2.jpg', wa: '9647800000001' },
+            { img: '3.jpg', wa: '9647800000002' },
+            { img: '4.jpg', wa: '9647800000003' },
+            { img: '5.jpg', wa: '9647800000004' },
+            { img: '6.jpg', wa: '9647800000005' },
+            { img: '7.jpg', wa: '9647800000006' }
         ];
 
-        const container = document.getElementById('feedContainer');
+        let activeImgContext = "";
+        let activeWaContext = "";
 
-        function initFeed() {
-            try {
-                debug("Generating Feed...");
-                myImages.forEach((imgName, index) => {
-                    // Image Card
-                    const imgCard = document.createElement('div');
-                    imgCard.className = 'card';
-                    imgCard.innerHTML = `<img class="media" src="assets/${imgName}" onerror="console.log('Failed: ${imgName}'); this.src='https://via.placeholder.com/1080x1920/161823/fe2c55?text=Missing+${imgName}'">`;
-                    container.appendChild(imgCard);
+        // --- FISHER-YATES SHUFFLE ---
+        function shuffleMedia(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
 
-                    // HTML Block
-                    if (index % 2 === 0) {
-                        const block = myBlocks[index % myBlocks.length];
-                        const blockCard = document.createElement('div');
-                        blockCard.className = 'card html-block';
-                        blockCard.innerHTML = `
-                            <div class="html-content">
-                                <i class="fas fa-microchip" style="font-size:40px; color:var(--primary)"></i>
-                                <h2 style="margin:15px 0">${block.title}</h2>
-                                <p style="color:#aaa">${block.desc}</p>
-                            </div>
-                            <div class="lock-overlay">
-                                <div class="lock-icon"><i class="fas fa-lock" style="font-size:30px"></i></div>
-                                <p style="margin-top:10px">PLEASE WAIT...</p>
-                                <button class="skip-btn">UNLOCKED - TAP TO SKIP</button>
-                            </div>
-                        `;
-                        container.appendChild(blockCard);
-                    }
-                });
-                debug("Feed Ready. Scroll Down.");
-                setupIntersections();
-            } catch (e) {
-                debug("Error: " + e.message);
+        // --- RENDER FUNCTION ---
+        function initTikTokFeed() {
+            const container = document.getElementById('feedContainer');
+            const randomizedSet = shuffleMedia([...myMediaData]);
+
+            randomizedSet.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img class="media" src="assets/${item.img}" onerror="this.src='https://via.placeholder.com/1080x1920/161823/555?text=${item.img}'">
+                    <div class="actions">
+                        <button class="action-btn btn-gift" onclick="triggerGiftFlow(event, '${item.img}', '${item.wa}')">
+                            <i class="fa-solid fa-gift"></i>
+                        </button>
+                        <button class="action-btn btn-wa" onclick="directWhatsApp('${item.img}', '${item.wa}')">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // End of feed alert
+            const endCard = document.createElement('div');
+            endCard.className = 'card end-card';
+            endCard.innerHTML = `
+                <h2>You're up to date!</h2>
+                <p>Come back later 😊</p>
+            `;
+            container.appendChild(endCard);
+        }
+
+        // --- SYSTEM INTERACTION LOGIC ---
+        function directWhatsApp(imgName, waNumber) {
+            const text = encodeURIComponent(`Hello! I am viewing image: ${imgName}`);
+            window.open(`https://wa.me/${waNumber}?text=${text}`, '_blank');
+        }
+
+        function triggerGiftFlow(event, imgName, waNumber) {
+            event.stopPropagation();
+            activeImgContext = imgName;
+            activeWaContext = waNumber;
+            
+            document.getElementById('targetImgName').innerText = imgName;
+            document.getElementById('promoInput').value = ""; 
+            
+            // Clear prior animations
+            document.getElementById('giftcardWrapper').classList.remove('revealed');
+            
+            // Pop open overlay container
+            const modal = document.getElementById('giftModalOverlay');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('giftcardWrapper').style.opacity = "1";
+                document.getElementById('giftcardWrapper').style.transform = "scale(1)";
+            }, 50);
+        }
+
+        function executeRibbonReveal(event) {
+            event.stopPropagation();
+            
+            // Fire Confetti system at coordinates of the inner button click
+            launchConfettiBurst(event.clientX, event.clientY);
+            
+            // Shift classes to run the CSS unwrap transforms
+            document.getElementById('giftcardWrapper').classList.add('revealed');
+        }
+
+        function closeGiftModal(event) {
+            // Only close if backdrop itself is touched
+            if(event.target.id === "giftModalOverlay") {
+                document.getElementById('giftModalOverlay').style.display = 'none';
+                document.getElementById('giftcardWrapper').style.opacity = "0";
+                document.getElementById('giftcardWrapper').style.transform = "scale(0.85)";
             }
         }
 
-        function setupIntersections() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && entry.intersectionRatio > 0.8) {
-                        const lock = entry.target.querySelector('.lock-overlay');
-                        if (lock && !entry.target.dataset.viewed) {
-                            lock.classList.add('active');
-                            container.style.overflowY = 'hidden'; 
-                            
-                            setTimeout(() => {
-                                const btn = lock.querySelector('.skip-btn');
-                                if(btn) {
-                                    btn.style.display = 'block';
-                                    btn.onclick = () => {
-                                        lock.classList.remove('active');
-                                        container.style.overflowY = 'scroll';
-                                        entry.target.dataset.viewed = "true";
-                                    };
-                                }
-                            }, 5000); 
-                        }
-                    }
-                });
-            }, { threshold: 0.8 });
-
-            document.querySelectorAll('.html-block').forEach(b => observer.observe(b));
+        function sendPromoToWhatsApp(event) {
+            event.stopPropagation();
+            const codeValue = document.getElementById('promoInput').value.trim();
+            if(!codeValue) {
+                alert("Please write down your promo code first!");
+                return;
+            }
+            
+            const message = encodeURIComponent(`Promo Code: ${codeValue}\nImage Name: ${activeImgContext}`);
+            window.open(`https://wa.me/${activeWaContext}?text=${message}`, '_blank');
+            
+            // Clear out interface
+            document.getElementById('giftModalOverlay').style.display = 'none';
         }
 
-        // Run the script
-        window.onload = initFeed;
+        // --- 2D CANVAS PARTICLE ENGINE ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let engineLoopId = null;
+
+        function adaptCanvasDimensions() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        adaptCanvasDimensions();
+        window.addEventListener('resize', adaptCanvasDimensions);
+
+        class ConfettiParticle {
+            constructor(x, y, variant) {
+                this.x = x; this.y = y; this.variant = variant;
+                this.init();
+            }
+            init() {
+                if (this.variant === 'foil') {
+                    this.vx = (Math.random() - 0.5) * 16;
+                    this.vy = (Math.random() - 0.9) * 15 - 5;
+                    this.g = 0.35;
+                    this.angle = Math.random() * 360;
+                    this.spin = (Math.random() - 0.5) * 12;
+                    this.w = Math.random() * 10 + 6;
+                    this.h = Math.random() * 6 + 4;
+                    this.color = ['#ff2c55', '#fed531', '#25D366', '#00d2ff', '#a855f7', '#f97316'][Math.floor(Math.random() * 6)];
+                    this.life = 1; this.decay = Math.random() * 0.012 + 0.006;
+                } else {
+                    const r = Math.random() * Math.PI * 2;
+                    const sp = Math.random() * 8 + 3;
+                    this.vx = Math.cos(r) * sp; this.vy = Math.sin(r) * sp;
+                    this.g = 0.08; this.radius = Math.random() * 2.5 + 1;
+                    this.color = '#fed531'; this.life = 1; this.decay = Math.random() * 0.03 + 0.02;
+                }
+            }
+            render() {
+                this.x += this.vx; this.y += this.vy; this.vy += this.g;
+                this.life -= this.decay;
+                
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.translate(this.x, this.y);
+                
+                if (this.variant === 'foil') {
+                    this.angle += this.spin;
+                    ctx.rotate((this.angle * Math.PI) / 180);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+                } else {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function launchConfettiBurst(originX, originY) {
+            for (let i = 0; i < 70; i++) particles.push(new ConfettiParticle(originX, originY, 'foil'));
+            for (let i = 0; i < 40; i++) particles.push(new ConfettiParticle(originX, originY, 'spark'));
+            if (!engineLoopId) tickEngine();
+        }
+
+        function tickEngine() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => p.render());
+            
+            if (particles.length > 0) {
+                engineLoopId = requestAnimationFrame(tickEngine);
+            } else {
+                engineLoopId = null;
+            }
+        }
+
+        window.onload = initTikTokFeed;
     </script>
 </body>
 </html>
