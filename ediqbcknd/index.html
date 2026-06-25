@@ -11,15 +11,12 @@
         :root { 
             --primary: #fe2c55; 
             --whatsapp: #25D366;
+            --facebook: #1877F2;
+            --tiktok: #000000;
             --bg: #000; 
             --glass-bg: rgba(30, 30, 34, 0.65);
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-glow: rgba(255, 255, 255, 0.15);
-            
-            /* Gift Variables */
-            --button-width: 100px; --button-height: 50px;
-            --card-width: 340px; --card-height: 480px;
-            --footer-height: 5rem; --total-button: 150px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -64,40 +61,47 @@
         /* Actions overlay */
         .card-info {
             position: absolute;
-            bottom: 120px; /* Above the search island */
+            bottom: 120px; 
             left: 20px;
-            right: 80px;
+            right: 90px;
             z-index: 10;
             pointer-events: none;
             text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
 
-        .card-info h3 { font-size: 1.2rem; margin-bottom: 5px; font-weight: 600; }
-        .card-info p { font-size: 0.9rem; color: rgba(255,255,255,0.8); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-info h3 { font-size: 1.2rem; margin-bottom: 5px; font-weight: 600; letter-spacing: 0.5px; }
+        .card-info p { font-size: 0.9rem; color: rgba(255,255,255,0.8); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
         .actions {
             position: absolute; 
             bottom: 120px; right: 15px;
-            display: flex; flex-direction: column; gap: 15px; 
+            display: flex; flex-direction: column; gap: 16px; 
             z-index: 10;
         }
 
         .action-btn {
-            width: 50px; height: 50px; 
+            width: 52px; height: 52px; 
             border-radius: 50%; border: none;
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; color: white; cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 22px; color: white; cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
         .action-btn:active { transform: scale(0.9); }
-        .btn-gift { color: #ff6b35; }
-        .btn-wa { color: var(--whatsapp); }
+        
+        .btn-wa { background: rgba(37, 211, 102, 0.25); color: #25D366; border-color: rgba(37, 211, 102, 0.4); }
+        .btn-wa:hover { background: var(--whatsapp); color: #fff; }
+        
+        .btn-fb { background: rgba(24, 119, 242, 0.25); color: #1877F2; border-color: rgba(24, 119, 242, 0.4); }
+        .btn-fb:hover { background: var(--facebook); color: #fff; }
+        
+        .btn-tt { background: rgba(0, 0, 0, 0.6); color: #ffffff; border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 4px 15px rgba(254, 44, 85, 0.3); }
+        .btn-tt:hover { background: var(--tiktok); color: #fff; border-color: var(--primary); }
 
         /* Loader & Scroll Indicator */
         .scroll-trigger { height: 10px; width: 100%; position: absolute; bottom: 0; }
@@ -158,7 +162,6 @@
             opacity: 1; pointer-events: all; transform: scale(1);
         }
 
-        /* Loading Indicator inside search */
         .island-loader {
             width: 20px; height: 20px;
             border: 2px solid rgba(255,255,255,0.1);
@@ -167,178 +170,163 @@
             display: none;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* --- 4. FLUID MODAL (GIFT REVEAL) --- */
-        #giftModalOverlay {
-            position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.85);
-            z-index: 100; display: none; 
-            align-items: center; justify-content: center;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            opacity: 0; transition: opacity 0.4s ease;
-        }
-        #giftModalOverlay.active { opacity: 1; }
-
-        .giftcard-wrapper {
-            position: relative; z-index: 10; 
-            transform: scale(0.9) translateY(20px); 
-            opacity: 0;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .giftcard-wrapper.revealed { opacity: 1; transform: scale(1) translateY(0); }
-
-        /* Retained Gift Card Complex CSS */
-        .giftcard { height: var(--card-height); width: var(--card-width); overflow: hidden; border-radius: 1.5rem; background: white; position: relative; }
-        .giftcard-content, .giftcard-cover { position: absolute; top: 0; left: 0; height: calc(100% - var(--footer-height)); width: 100%; }
-        .giftcard-cover { background: linear-gradient(135deg, #2a2a32, #18181b); display: flex; justify-content: center; align-items: center; z-index: 2; }
-        .giftcard-cover > .fa-gift { color: #ff6b35; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(255, 107, 53, 0.4)); }
-        .giftcard-content { padding: 2rem 1.5rem; color: #555; z-index: 1; background: #fafafa; }
-        .giftcard-content * { transform: translateX(3rem); opacity: 0; }
-        .giftcard-content h2 { font-size: 1.1rem; text-transform: uppercase; margin: 0.5rem 0; color: #111; letter-spacing: 0.05em; }
-        .item-target-label { font-size: 1rem; font-weight: 600; color: #ff6b35; margin-top: 10px; display: block; word-break: break-all; }
-        .giftcard-footer { position: absolute; bottom: 0; left: 0; height: var(--footer-height); width: 100%; background: white; z-index: 3; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
-        .giftcard-footer > * { float: left; }
-        .giftcard-text, .giftcard-info { width: calc(100% - var(--total-button)); padding: 1rem; }
-        .giftcard-text { height: 100%; }
-        .giftcard-text h1 { font-size: 1.2rem; color: #111; margin: 0; font-weight: 700; }
-        .giftcard-text h2 { font-size: 0.9rem; color: #888; margin: 0; font-weight: 400; }
-        .giftcard-info { position: absolute; right: 0; top: 0; height: 100%; text-align: right; transform: translateX(100%); display: table; padding-left: 0; background: white; border-left: 1px solid rgba(0,0,0,0.05); }
-        .giftcard-info > * { display: table-cell; vertical-align: middle; }
-        .giftcard-info input[type="text"] { height: var(--button-height); width: 90%; margin-right: 10px; padding: 0 1rem; background: #f0f0f5; border: none; border-radius: 12px; color: #111; outline: none; }
-        .giftcard-inner-btn { display: inline-block; height: var(--button-height); line-height: 50px; text-align: center; background: #111; color: white; padding: 0 1.2rem; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; transition: 0.3s; }
-        .giftcard-inner-btn.secondary { background: var(--whatsapp); }
-
-        .ribbon { width: calc(var(--button-width) + var(--button-height)); height: calc(var(--button-width) + var(--button-height)); top: calc(50% - (var(--button-width) + var(--button-height)) / 2); position: relative; }
-        .giftwrap { width: 100%; height: 100%; position: relative; }
-        .giftwrap > .giftcard-inner-btn { width: var(--button-width); top: calc(50% - var(--button-height) / 2); left: calc(50% - var(--button-width) / 2); position: absolute; z-index: 5; }
-        .giftwrap:before, .giftwrap:after { display: none; content: ''; position: absolute; height: 100%; width: 100%; top: 0; left: 0; }
-        .giftwrap:before { clip-path: polygon(50% 0%, 50% 0%, 50% 0%, 100% 50%, 100% 50%, 100% 50%, 50% 100%, 50% 100%, 50% 100%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 50% 100%, 50% 100%, 100% 50%, 100% 50%, 50% 0%, 50% 0%, 50% 0%); background: #222; z-index: 2; }
-        .giftwrap:after { clip-path: polygon(50% 0%, 50% 0%, 100% 50%, 100% 50%, 50% 100%, 50% 100%, 0% 50%, 0% 50%); background: #111; z-index: -1; }
-        
-        .giftcard-wrapper.revealed .giftwrap > .giftcard-inner-btn { animation: buttonPulse 0.2s forwards; }
-        .giftcard-wrapper.revealed .giftwrap:before, .giftcard-wrapper.revealed .giftwrap:after { display: block; }
-        .giftcard-wrapper.revealed .giftwrap:before { animation: wrap-before 0.6s cubic-bezier(0.77, 0, 0.175, 1) both; }
-        .giftcard-wrapper.revealed .giftwrap:after { animation: wrap-after 0.6s cubic-bezier(0.77, 0, 0.175, 1) both; }
-        .giftcard-wrapper.revealed .giftcard-footer { animation: footerSlide 0.6s 0.7s both; }
-        .giftcard-wrapper.revealed .giftcard-cover { animation: coverSlide 0.6s 0.7s both; }
-        .giftcard-wrapper.revealed .giftcard-content > * { animation: contentFadeIn 0.6s 0.7s both; }
-        .giftcard-wrapper.revealed .giftcard-content > *:nth-child(1) { animation-delay: 0.72s; }
-        .giftcard-wrapper.revealed .giftcard-content > *:nth-child(2) { animation-delay: 0.77s; }
-
-        @keyframes buttonPulse { to { transform: scale(0); opacity: 0; pointer-events: none; } }
-        @keyframes contentFadeIn { to { transform: translateX(0); opacity: 1; } }
-        @keyframes coverSlide { to { transform: translateY(calc(100% - 1px)) scaleX(0.95); } }
-        @keyframes footerSlide { to { transform: translateX(calc(-100% + var(--total-button))); } }
-        @keyframes wrap-before { 100% { clip-path: polygon(18% 32%, 50% 64%, 82% 32%, 82% 32%, 64% 50%, 82% 68%, 82% 68%, 50% 36%, 18% 68%, 18% 68%, 36% 50%, 18% 32%, 18% 32%, 18% 68%, 82% 68%, 82% 68%, 82% 32%, 82% 32%, 18% 32%, 18% 32%); } }
-        @keyframes wrap-after { 100% { clip-path: polygon(18% 32%, 82% 32%, 82% 32%, 82% 68%, 82% 68%, 18% 68%, 18% 68%, 18% 32%); } }
-
-        /* --- 5. CONFETTI CANVAS --- */
-        #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
     </style>
 </head>
 <body>
 
-    <canvas id="confetti-canvas"></canvas>
-
-    <div id="feedContainer">
-        </div>
+    <div id="feedContainer"></div>
 
     <div id="searchIsland">
         <i class="fa-solid fa-search search-icon"></i>
-        <input type="text" id="searchInput" placeholder="Search universe..." autocomplete="off">
+        <input type="text" id="searchInput" placeholder="Search universe descriptions..." autocomplete="off">
         <div class="island-loader" id="searchLoader"></div>
         <button class="search-action-btn" id="clearSearchBtn">
             <i class="fa-solid fa-times"></i>
         </button>
     </div>
 
-    <div id="giftModalOverlay">
-        <div class="giftcard-wrapper" id="giftcardWrapper">
-            <section class="giftcard">
-                <section class="giftcard-cover">
-                    <i class="fa-solid fa-gift"></i>
-                </section>
-                <div class="giftcard-content">
-                    <h2>Exclusive Access</h2>
-                    <p style="font-size: 13px; margin-bottom: 5px; opacity: 0.7;">Redeem code for:</p>
-                    <span class="item-target-label" id="targetImgName">Loading...</span>
-                </div>
-                <footer class="giftcard-footer">
-                    <div class="giftcard-text">
-                        <h1>Verify Code</h1>
-                    </div>
-                    <div class="ribbon">
-                        <div class="giftwrap">
-                            <button class="giftcard-inner-btn" onclick="executeReveal(event)">Unlock</button>
-                        </div>
-                    </div>
-                    <div class="giftcard-info">
-                        <div>
-                            <input type="text" id="promoInput" placeholder="Enter code..." onclick="event.stopPropagation()">
-                        </div>
-                        <div>
-                            <button class="giftcard-inner-btn secondary" onclick="sendToWhatsApp(event)">
-                                <i class="fa-brands fa-whatsapp"></i>
-                            </button>
-                        </div>
-                    </div>
-                </footer>
-            </section>
-        </div>
-    </div>
-
     <script>
         /**
-         * 1. SIMULATED GITHUB BACKEND INFRASTRUCTURE
-         * Replaces the static array with an async data provider that uses deep descriptions 
-         * to allow for semantic-like search matching.
+         * 1. GLOBAL INFRASTRUCTURE CONFIGURATION
+         * Replace placeholder values with your specific GitHub Username, Repository Name, 
+         * Branch, and Folder Path details to map assets natively.
          */
-        class DatabaseProvider {
-            static async fetchMediaData() {
-                // Simulate network latency for realism
-                await new Promise(res => setTimeout(res, 400));
-                
+        const GITHUB_CONFIG = {
+            username: "YOUR_GITHUB_USERNAME",
+            repository: "YOUR_REPOSITORY_NAME",
+            branch: "main",
+            folderPath: "assets" // Use "" if images are housed directly at the root level
+        };
+
+        // Computes explicit raw content base delivery path
+        const GITHUB_BASE_URL = `https://raw.githubusercontent.com/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repository}/${GITHUB_CONFIG.branch}/${GITHUB_CONFIG.folderPath ? GITHUB_CONFIG.folderPath + '/' : ''}`;
+
+        /**
+         * 2. CENTRALIZED DATABASE SYSTEM WITH COMPREHENSIVE SCHEMAS
+         * Houses descriptive parameters along with manual routing URLs per record object.
+         */
+        class AssetDatabase {
+            static async getRecords() {
+                // Mimicking async latency common to external platform delivery layers
+                await new Promise(resolve => setTimeout(resolve, 200));
+
                 return [
-                    { id: 'img1', file: '2.jpg', name: 'Mountain Sunset', wa: '9647800000001', desc: 'A breathtaking view of rocky mountains during golden hour. The sky transitions from deep orange to purple, casting long shadows across the valley below. Perfect for nature lovers.' },
-                    { id: 'img2', file: '3.jpg', name: 'Ocean Horizon', wa: '9647800000002', desc: 'Crystal clear blue waters crashing against white sand beaches. The tropical ocean view provides a calming, serene atmosphere perfect for relaxation and summer vibes.' },
-                    { id: 'img3', file: '4.jpg', name: 'Cyberpunk City', wa: '9647800000003', desc: 'Urban nightlife captured in a neon-lit metropolis. Towering skyscrapers, flying vehicles, and glowing street signs create a moody, futuristic atmosphere.' },
-                    { id: 'img4', file: '5.jpg', name: 'Emerald Forest', wa: '9647800000004', desc: 'Deep within an ancient woodland, sunlight pierces through the thick canopy of green leaves. Mist hovers above the mossy ground.' },
-                    { id: 'img5', file: '6.jpg', name: 'Sahara Dunes', wa: '9647800000005', desc: 'Endless rolling sand dunes under a blazing sun. The warm, arid landscape features sharp ridges sculpted by desert winds.' },
-                    { id: 'img6', file: '7.jpg', name: 'Arctic Peak', wa: '9647800000006', desc: 'A frozen tundra featuring massive glaciers and snow-capped mountains. The cold, crisp air and blue ice create a harsh yet beautiful winter wonderland.' }
+                    { 
+                        id: 'img1', 
+                        file: '2.jpg', 
+                        name: 'Mountain Sunset', 
+                        desc: 'A breathtaking view of rocky mountains during golden hour. The sky transitions from deep orange to purple, casting long shadows across the valley below.',
+                        links: {
+                            whatsapp: 'https://wa.me/9647800000001?text=Inquiry%20Mountain%20Sunset',
+                            facebook: 'https://facebook.com/yourpage/posts/mountain-sunset-id',
+                            tiktok: 'https://tiktok.com/@yourprofile/video/mountain-sunset-id'
+                        }
+                    },
+                    { 
+                        id: 'img2', 
+                        file: '3.jpg', 
+                        name: 'Ocean Horizon', 
+                        desc: 'Crystal clear blue waters crashing against white sand beaches. The tropical ocean view provides a calming, serene atmosphere perfect for summer vibes.',
+                        links: {
+                            whatsapp: 'https://wa.me/9647800000002?text=Inquiry%20Ocean%20Horizon',
+                            facebook: 'https://facebook.com/yourpage/posts/ocean-horizon-id',
+                            tiktok: 'https://tiktok.com/@yourprofile/video/ocean-horizon-id'
+                        }
+                    },
+                    { 
+                        id: 'img3', 
+                        file: '4.jpg', 
+                        name: 'Cyberpunk City', 
+                        desc: 'Urban nightlife captured in a neon-lit metropolis. Towering skyscrapers, flying vehicles, and glowing street signs create a moody, futuristic atmosphere.',
+                        links: {
+                            whatsapp: 'https://wa.me/9647800000003?text=Inquiry%20Cyberpunk%20City',
+                            facebook: 'https://facebook.com/yourpage/posts/cyberpunk-city-id',
+                            tiktok: 'https://tiktok.com/@yourprofile/video/cyberpunk-city-id'
+                        }
+                    },
+                    { 
+                        id: 'img4', 
+                        file: '5.jpg', 
+                        name: 'Emerald Forest', 
+                        desc: 'Deep within an ancient woodland, sunlight pierces through the thick canopy of green leaves. Mist hovers cleanly above the damp, mossy ground.',
+                        links: {
+                            whatsapp: 'https://wa.me/9647800000004?text=Inquiry%20Emerald%20Forest',
+                            facebook: 'https://facebook.com/yourpage/posts/emerald-forest-id',
+                            tiktok: 'https://tiktok.com/@yourprofile/video/emerald-forest-id'
+                        }
+                    },
+                    { 
+                        id: 'img5', 
+                        file: '6.jpg', 
+                        name: 'Sahara Dunes', 
+                        desc: 'Endless rolling sand dunes under a blazing sun. The warm, arid landscape features sharp ridges sculpted by shifting desert winds.',
+                        links: {
+                            whatsapp: 'https://wa.me/9647800000005?text=Inquiry%20Sahara%20Dunes',
+                            facebook: 'https://facebook.com/yourpage/posts/sahara-dunes-id',
+                            tiktok: 'https://tiktok.com/@yourprofile/video/sahara-dunes-id'
+                        }
+                    },
+                    { 
+                        id: 'img6', 
+                        file: '7.jpg', 
+                        name: 'Arctic Peak', 
+                        desc: 'A frozen tundra featuring massive glaciers and snow-capped mountains. The cold, crisp air and blue ice create a beautiful winter wonderland.',
+                        links: {
+                            whatsapp: 'https://wa.me/9647800000006?text=Inquiry%20Arctic%20Peak',
+                            facebook: 'https://facebook.com/yourpage/posts/arctic-peak-id',
+                            tiktok: 'https://tiktok.com/@yourprofile/video/arctic-peak-id'
+                        }
+                    }
                 ];
             }
         }
 
         /**
-         * 2. APPLICATION STATE & ENGINE
+         * 3. APPLICATION ENGINE STATE ENGINE
          */
-        let mediaDatabase = [];
-        let isSearchActive = false;
-        let activeContext = { name: '', wa: '' };
+        let MasterDatabase = [];
+        let RuntimePool = [];
+        let IsSearching = false;
 
         const feedContainer = document.getElementById('feedContainer');
         const searchInput = document.getElementById('searchInput');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const searchLoader = document.getElementById('searchLoader');
 
-        // Initialization
-        async function bootstrap() {
-            mediaDatabase = await DatabaseProvider.fetchMediaData();
-            renderFeed(mediaDatabase);
-            setupIntersectionObserver();
+        /**
+         * Fisher-Yates Randomization Algorithm Utility
+         */
+        function randomizeArray(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
         }
 
         /**
-         * 3. RENDER ENGINE & INFINITE SCROLL LOGIC
+         * Core Bootstrap Initialization
          */
-        function renderFeed(items, append = false) {
-            if (!append) feedContainer.innerHTML = '';
+        async function bootstrap() {
+            MasterDatabase = await AssetDatabase.getRecords();
+            // Enforce default baseline randomization on initial loading state
+            RuntimePool = randomizeArray(MasterDatabase);
+            renderFeed(RuntimePool);
+            setupScrollObserver();
+        }
+
+        /**
+         * 4. RENDER LAYOUT MANAGEMENT
+         */
+        function renderFeed(items, appendMode = false) {
+            if (!appendMode) feedContainer.innerHTML = '';
             
             if (items.length === 0) {
                 feedContainer.innerHTML = `
-                    <div class="card" style="flex-direction: column;">
-                        <i class="fa-solid fa-ghost" style="font-size: 3rem; color: rgba(255,255,255,0.2); margin-bottom: 15px;"></i>
-                        <p style="color: rgba(255,255,255,0.5);">No transmissions found.</p>
+                    <div class="card" style="flex-direction: column; gap: 10px;">
+                        <i class="fa-solid fa-cloud-bounce" style="font-size: 2.5rem; color: rgba(255,255,255,0.15);"></i>
+                        <p style="color: rgba(255,255,255,0.4); font-size: 0.95rem;">No platform transmissions matched your request.</p>
                     </div>`;
                 return;
             }
@@ -346,243 +334,148 @@
             items.forEach((item) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Using placehold.co for reliable dummy images since local assets aren't present
-                const imgUrl = `https://placehold.co/1080x1920/18181b/ffffff?text=${encodeURIComponent(item.name)}`;
+                
+                // Absolute structural pathing computed straight from CDN settings
+                const resolvedMediaUrl = GITHUB_BASE_URL + item.file;
                 
                 card.innerHTML = `
-                    <img class="media" src="${imgUrl}" alt="${item.name}">
+                    <img class="media" src="${resolvedMediaUrl}" alt="${item.name}" onerror="this.onerror=null; handleImageFallback(this, '${item.name}');">
                     <div class="card-info">
                         <h3>${item.name}</h3>
                         <p>${item.desc}</p>
                     </div>
                     <div class="actions">
-                        <button class="action-btn btn-gift" onclick="openGiftModal('${item.name}', '${item.wa}')">
-                            <i class="fa-solid fa-gift"></i>
-                        </button>
-                        <button class="action-btn btn-wa" onclick="routeWhatsApp('${item.name}', '${item.wa}')">
+                        <button class="action-btn btn-wa" onclick="executeExternalRedirect('${item.links.whatsapp}')" title="Share via WhatsApp">
                             <i class="fa-brands fa-whatsapp"></i>
+                        </button>
+                        <button class="action-btn btn-fb" onclick="executeExternalRedirect('${item.links.facebook}')" title="View on Facebook">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </button>
+                        <button class="action-btn btn-tt" onclick="executeExternalRedirect('${item.links.tiktok}')" title="Watch on TikTok">
+                            <i class="fa-brands fa-tiktok"></i>
                         </button>
                     </div>
                 `;
                 feedContainer.appendChild(card);
             });
 
-            // Add an invisible trigger at the end for the IntersectionObserver
             const trigger = document.createElement('div');
             trigger.className = 'scroll-trigger';
             feedContainer.appendChild(trigger);
         }
 
-        // The system falls back to random images if scrolling past search results
-        function setupIntersectionObserver() {
+        /**
+         * Graceful Fallback Management if GitHub configuration variables are left unassigned
+         */
+        function handleImageFallback(imgElement, label) {
+            imgElement.src = `https://placehold.co/1080x1920/18181b/ffffff?text=${encodeURIComponent(label)}`;
+        }
+
+        function executeExternalRedirect(targetUrl) {
+            if (targetUrl && targetUrl !== '#' && !targetUrl.includes('YOUR_')) {
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                alert("Destination target URL configuration parameters require assignment within the internal database schema.");
+            }
+        }
+
+        /**
+         * Infinite Continuous Cycling Engine Logic
+         */
+        function setupScrollObserver() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        // Remove current trigger
                         entry.target.remove();
-                        // Generate random feed continuation
-                        generateRandomFeedItems();
+                        appendContinuousLoop();
                     }
                 });
             }, { root: feedContainer, threshold: 0.1 });
 
-            // Continuously observe the last element added
-            const observeLast = () => {
+            const rebindTrigger = () => {
                 const trigger = document.querySelector('.scroll-trigger');
                 if (trigger) observer.observe(trigger);
             };
 
-            // Hook into DOM changes to re-observe
-            const mutationObserver = new MutationObserver(observeLast);
-            mutationObserver.observe(feedContainer, { childList: true });
-            observeLast();
+            const structuralMutation = new MutationObserver(rebindTrigger);
+            structuralMutation.observe(feedContainer, { childList: true });
+            rebindTrigger();
         }
 
-        function generateRandomFeedItems() {
-            // Shuffle database to create an infinite random loop
-            const shuffled = [...mediaDatabase].sort(() => 0.5 - Math.random());
-            renderFeed(shuffled.slice(0, 3), true); // Append 3 random items
+        function appendContinuousLoop() {
+            // Continually serve records randomly shuffled on iterative loop extensions
+            const dynamicCycleSegment = randomizeArray(MasterDatabase).slice(0, 3);
+            renderFeed(dynamicCycleSegment, true);
         }
 
         /**
-         * 4. SMART SEARCH (TF-IDF Inspired Description Matching)
+         * 5. HIGH-WEIGHT TOKENIZED SEARCH ALGORITHM
          */
-        let searchTimeout;
+        let operationalSearchDebounce;
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
+            const queryText = e.target.value.trim();
             
-            // UI Toggle
-            clearSearchBtn.classList.toggle('active', query.length > 0);
-            if(query.length === 0) searchLoader.style.display = 'none';
+            clearSearchBtn.classList.toggle('active', queryText.length > 0);
+            if(queryText.length === 0) searchLoader.style.display = 'none';
 
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                executeSearch(query);
-            }, 400); // Debounce
+            clearTimeout(operationalSearchDebounce);
+            operationalSearchDebounce = setTimeout(() => {
+                processStructuralSearch(queryText);
+            }, 350); 
         });
 
         clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
             clearSearchBtn.classList.remove('active');
-            executeSearch('');
+            processStructuralSearch('');
             searchInput.focus();
         });
 
-        async function executeSearch(query) {
-            isSearchActive = query.length > 0;
+        async function processStructuralSearch(queryText) {
+            IsSearching = queryText.length > 0;
             
-            if (!isSearchActive) {
-                renderFeed(mediaDatabase);
+            if (!IsSearching) {
+                renderFeed(RuntimePool);
                 return;
             }
 
             searchLoader.style.display = 'block';
             clearSearchBtn.style.display = 'none';
 
-            // Simulate DB query delay
-            await new Promise(res => setTimeout(res, 300));
+            await new Promise(resolve => setTimeout(resolve, 250));
 
-            const q = query.toLowerCase();
-            const results = mediaDatabase.map(item => {
-                let score = 0;
-                const name = item.name.toLowerCase();
-                const desc = item.desc.toLowerCase();
+            const cleanQuery = queryText.toLowerCase();
+            const tokenizedWords = cleanQuery.split(/\s+/).filter(word => word.length > 1);
 
-                // Exact or partial name match (Highest priority)
-                if (name === q) score += 100;
-                else if (name.includes(q)) score += 50;
+            const searchMatches = MasterDatabase.map(record => {
+                let positionalScore = 0;
+                const nameStr = record.name.toLowerCase();
+                const descStr = record.desc.toLowerCase();
 
-                // Description context match
-                if (desc.includes(q)) score += 20;
+                // Priority Layer 1: Strict Equality Matches
+                if (nameStr === cleanQuery) positionalScore += 200;
+                if (descStr.includes(cleanQuery)) positionalScore += 80;
 
-                // Word boundary matching in description
-                const words = q.split(' ');
-                words.forEach(word => {
-                    if (word.length > 2 && desc.includes(word)) score += 5;
+                // Priority Layer 2: Phrase Index Tokenization Checks
+                if (nameStr.includes(cleanQuery)) positionalScore += 60;
+
+                // Priority Layer 3: Text Token Relevance Scans
+                tokenizedWords.forEach(token => {
+                    if (nameStr.includes(token)) positionalScore += 25;
+                    if (descStr.includes(token)) positionalScore += 10;
                 });
 
-                return { ...item, score };
+                return { ...record, searchRelevanceScore: positionalScore };
             })
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score); // Aligned list order based on relevance
+            .filter(record => record.searchRelevanceScore > 0)
+            .sort((alpha, beta) => beta.searchRelevanceScore - alpha.searchRelevanceScore);
 
-            renderFeed(results);
+            renderFeed(searchMatches);
             
             searchLoader.style.display = 'none';
             clearSearchBtn.style.display = 'flex';
         }
 
-        /**
-         * 5. MODAL & EXTERNAL ROUTING LOGIC
-         */
-        function routeWhatsApp(name, wa) {
-            const msg = encodeURIComponent(`Viewing item: ${name}`);
-            window.open(`https://wa.me/${wa}?text=${msg}`, '_blank');
-        }
-
-        function openGiftModal(name, wa) {
-            activeContext = { name, wa };
-            document.getElementById('targetImgName').innerText = name;
-            document.getElementById('promoInput').value = ""; 
-
-            const modal = document.getElementById('giftModalOverlay');
-            modal.style.display = 'flex';
-            
-            requestAnimationFrame(() => {
-                modal.classList.add('active');
-                document.getElementById('giftcardWrapper').classList.add('revealed');
-            });
-        }
-
-        function executeReveal(event) {
-            event.stopPropagation();
-            launchConfetti(event.clientX, event.clientY);
-            
-            // Transition inner UI
-            document.querySelector('.giftwrap').style.pointerEvents = 'none';
-            document.querySelector('.giftwrap > button').style.display = 'none';
-        }
-
-        function closeGiftModal(e) {
-            if(e.target.id === "giftModalOverlay") {
-                const modal = document.getElementById('giftModalOverlay');
-                modal.classList.remove('active');
-                document.getElementById('giftcardWrapper').classList.remove('revealed');
-                
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    // Reset wrap UI
-                    document.querySelector('.giftwrap').style.pointerEvents = 'all';
-                    document.querySelector('.giftwrap > button').style.display = 'inline-block';
-                }, 400);
-            }
-        }
-        document.getElementById('giftModalOverlay').addEventListener('click', closeGiftModal);
-
-        function sendToWhatsApp(e) {
-            e.stopPropagation();
-            const code = document.getElementById('promoInput').value.trim();
-            if(!code) return alert("Enter code first.");
-            
-            const msg = encodeURIComponent(`Code: ${code}\nTarget: ${activeContext.name}`);
-            window.open(`https://wa.me/${activeContext.wa}?text=${msg}`, '_blank');
-            closeGiftModal({ target: { id: "giftModalOverlay" } });
-        }
-
-        /**
-         * 6. HIGH-PERFORMANCE PARTICLE ENGINE
-         */
-        const canvas = document.getElementById('confetti-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let engineId = null;
-
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
-
-        class Particle {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.vx = (Math.random() - 0.5) * 15;
-                this.vy = (Math.random() - 1) * 15;
-                this.gravity = 0.4;
-                this.size = Math.random() * 8 + 4;
-                this.color = ['#fe2c55', '#25D366', '#ff6b35', '#fff'][Math.floor(Math.random() * 4)];
-                this.life = 1;
-                this.decay = Math.random() * 0.02 + 0.01;
-                this.angle = Math.random() * 360;
-                this.spin = (Math.random() - 0.5) * 10;
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy; this.vy += this.gravity;
-                this.life -= this.decay; this.angle += this.spin;
-            }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, this.life);
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle * Math.PI / 180);
-                ctx.fillStyle = this.color;
-                ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
-                ctx.restore();
-            }
-        }
-
-        function launchConfetti(x, y) {
-            for(let i=0; i<60; i++) particles.push(new Particle(x, y));
-            if(!engineId) loop();
-        }
-
-        function loop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles = particles.filter(p => p.life > 0);
-            particles.forEach(p => { p.update(); p.draw(); });
-            
-            if(particles.length > 0) engineId = requestAnimationFrame(loop);
-            else engineId = null;
-        }
-
-        // Initialize App
         window.onload = bootstrap;
     </script>
 </body>
